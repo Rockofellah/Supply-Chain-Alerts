@@ -105,7 +105,7 @@ def fetch_feeds():
         for source in FEED_SOURCES:
             try:
                 print(f"📡 Fetching {source['name']}...")
-                feed = feedparser.parse(source['url'], timeout=10)
+                feed = feedparser.parse(source['url'])
                 
                 for entry in feed.entries[:10]:  # Limit to 10 per source
                     try:
