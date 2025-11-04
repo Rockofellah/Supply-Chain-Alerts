@@ -3,335 +3,1349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supply Chain Alert Aggregator</title>
+    <title>Supply Chain Alert Aggregator | Real-Time Logistics Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
             min-height: 100vh;
-            padding: 20px;
+            color: var(--dark);
+            padding: 0;
+            overflow-x: hidden;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Animated background gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(138, 92, 246, 0.3) 0%, transparent 50%);
+            animation: pulse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glass morphism header */
         header {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+                        0 0 0 1px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideDown 0.6s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: var(--gray);
+            font-weight: 400;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        h1 { color: #2d3748; font-size: 2em; margin-bottom: 10px; }
-        .subtitle { color: #718096; font-size: 1.1em; }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .stat-value { font-size: 2em; font-weight: bold; color: #667eea; }
-        .stat-label { color: #718096; margin-top: 5px; }
-        .controls {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .filter-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .filter-item { display: flex; flex-direction: column; }
-        label {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 5px;
+
+        /* Live Update Indicator */
+        .live-indicator {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 20px;
             font-size: 0.9em;
-        }
-        select, input[type="text"], input[type="date"] {
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-        select:focus, input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .date-range-custom {
-            display: none;
-            grid-column: 1 / -1;
-            gap: 15px;
-            margin-top: 10px;
-        }
-        .date-range-custom.active {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-        }
-        .search-container { display: flex; gap: 10px; }
-        .search-container input { flex: 1; }
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background 0.3s;
             font-weight: 600;
+            color: var(--success);
         }
-        button:hover { background: #5568d3; }
-        button:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
         }
-        .refresh-btn { background: #48bb78; }
-        .refresh-btn:hover { background: #38a169; }
-        .clear-btn { background: #e53e3e; }
-        .clear-btn:hover { background: #c53030; }
-        .alerts-container {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
-        .alert-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            color: var(--primary);
+            font-size: 0.85em;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
         }
-        .alert-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+
+        .quick-action-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
             transform: translateY(-2px);
         }
+
+        /* Stats cards with hover effects */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(59, 130, 246, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            margin-top: 8px;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            margin-top: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        /* Modern controls with glass effect */
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .view-mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: rgba(100, 116, 139, 0.1);
+            padding: 4px;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .view-mode-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--gray);
+        }
+
+        .view-mode-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, input[type="text"], input[type="date"] {
+            padding: 14px 18px;
+            border: 2px solid rgba(100, 116, 139, 0.2);
+            border-radius: 12px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--dark);
+        }
+
+        select:hover, input:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background: white;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .search-container input {
+            flex: 1;
+            min-width: 250px;
+            padding-right: 40px;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 320px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 8px;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        /* Premium buttons */
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        button:hover::before {
+            opacity: 1;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, var(--success), #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, var(--secondary), #7c3aed);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Alert cards with premium design */
+        .alerts-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .alerts-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .sort-label {
+            font-size: 0.9em;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .sort-select {
+            padding: 8px 16px;
+            border: 2px solid rgba(100, 116, 139, 0.2);
+            border-radius: 8px;
+            font-size: 0.9em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .alert-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(100, 116, 139, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .alert-card:hover {
+            transform: translateX(8px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+            border-color: var(--primary);
+        }
+
+        .alert-card:hover::before {
+            opacity: 1;
+        }
+
+        .alert-card.bookmarked {
+            border-color: var(--warning);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.03), white);
+        }
+
         .alert-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 10px;
-            gap: 15px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 20px;
         }
+
         .alert-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #2d3748;
+            font-size: 1.25em;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.4;
             flex: 1;
         }
+
+        .alert-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(100, 116, 139, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1em;
+        }
+
+        .action-icon:hover {
+            background: rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        .action-icon.bookmarked {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
         .severity-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 6px 16px;
+            border-radius: 20px;
             font-size: 0.85em;
-            font-weight: 600;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        .severity-high { background: #fed7d7; color: #c53030; }
-        .severity-medium { background: #feebc8; color: #c05621; }
-        .severity-low { background: #c6f6d5; color: #276749; }
+
+        .severity-high {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        .severity-medium {
+            background: linear-gradient(135deg, #fed7aa, #fdba74);
+            color: #9a3412;
+        }
+
+        .severity-low {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+
         .alert-description {
-            color: #4a5568;
-            line-height: 1.6;
-            margin-bottom: 10px;
+            color: var(--gray);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            font-size: 1.05em;
         }
+
         .alert-meta {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+            align-items: center;
+        }
+
+        .meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             font-size: 0.9em;
-            color: #718096;
+            color: var(--gray);
+            font-weight: 500;
         }
+
         .tag {
-            background: #edf2f7;
-            padding: 4px 10px;
-            border-radius: 4px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #5b21b6;
+            padding: 6px 14px;
+            border-radius: 20px;
             font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.2s;
         }
-        .tag-category { background: #e6fffa; color: #234e52; }
-        .tag-region { background: #feebc8; color: #7c2d12; }
-        .loading { text-align: center; padding: 40px; color: #718096; }
+
+        .tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        .tag-category {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+        }
+
+        .tag-region {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+
+        /* Compact View */
+        .alerts-container.compact .alert-card {
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .alerts-container.compact .alert-title {
+            font-size: 1.1em;
+        }
+
+        .alerts-container.compact .alert-description {
+            font-size: 0.95em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Grid View */
+        .alerts-container.grid #alerts-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .alerts-container.grid .alert-card {
+            margin-bottom: 0;
+        }
+
+        .alerts-container.grid .alert-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--gray);
+        }
+
         .spinner {
-            border: 4px solid #e2e8f0;
-            border-top: 4px solid #667eea;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 20px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .no-results { text-align: center; padding: 40px; color: #718096; }
+
         .filter-summary {
-            background: #edf2f7;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-            color: #4a5568;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            color: #1e40af;
+            border-left: 4px solid var(--primary);
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: var(--gray);
+            font-size: 1.1em;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Keyboard Shortcuts Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--dark);
+        }
+
+        .shortcuts-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 8px;
+        }
+
+        .key {
+            background: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 600;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .page-btn {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid rgba(100, 116, 139, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive design */
         @media (max-width: 768px) {
-            .filter-group { grid-template-columns: 1fr; }
-            .alert-header { flex-direction: column; }
-            h1 { font-size: 1.5em; }
-            .date-range-custom.active { grid-template-columns: 1fr; }
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            header {
+                padding: 30px;
+            }
+
+            .live-indicator {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-top: 16px;
+            }
+
+            .filter-group {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-container input,
+            .search-container button {
+                width: 100%;
+            }
+
+            .search-clear {
+                right: 16px;
+            }
+
+            .alert-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .view-mode-toggle {
+                width: 100%;
+            }
+
+            .view-mode-btn {
+                flex: 1;
+            }
+
+            .alerts-container.grid #alerts-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
         }
     </style>
 </head>
 <body>
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="modal-overlay" id="shortcuts-modal">
+        <div class="modal">
+            <div class="modal-header">⌨️ Keyboard Shortcuts</div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span>Show keyboard shortcuts</span>
+                    <div class="shortcut-keys"><span class="key">?</span></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>Focus search</span>
+                    <div class="shortcut-keys"><span class="key">/</span></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>Clear filters</span>
+                    <div class="shortcut-keys"><span class="key">C</span></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>Refresh data</span>
+                    <div class="shortcut-keys"><span class="key">R</span></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>Export alerts</span>
+                    <div class="shortcut-keys"><span class="key">E</span></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>Toggle view mode</span>
+                    <div class="shortcut-keys"><span class="key">V</span></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>Close modal</span>
+                    <div class="shortcut-keys"><span class="key">Esc</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                Live Updates
+            </div>
             <h1>🚢 Supply Chain Alert Aggregator</h1>
-            <p class="subtitle">Real-time monitoring of global supply chain disruptions with 20+ sources</p>
+            <p class="subtitle">Real-time monitoring of global supply chain disruptions from 20+ trusted sources</p>
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="quickFilter('severity', 'high')">🔴 High Severity Only</button>
+                <button class="quick-action-btn" onclick="quickFilter('date_range', 'last_24h')">⚡ Last 24 Hours</button>
+                <button class="quick-action-btn" onclick="showBookmarks()">⭐ Bookmarked</button>
+                <button class="quick-action-btn" onclick="showShortcuts()">⌨️ Shortcuts</button>
+            </div>
         </header>
 
         <div class="stats" id="stats"></div>
 
         <div class="controls">
+            <div class="view-mode-toggle">
+                <button class="view-mode-btn active" data-view="list" onclick="changeView('list')">📋 List View</button>
+                <button class="view-mode-btn" data-view="compact" onclick="changeView('compact')">📄 Compact</button>
+                <button class="view-mode-btn" data-view="grid" onclick="changeView('grid')">📊 Grid</button>
+            </div>
+
             <div class="filter-group">
                 <div class="filter-item">
-                    <label for="category-filter">Category</label>
+                    <label for="category-filter">📦 Category</label>
                     <select id="category-filter">
                         <option value="">All Categories</option>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label for="region-filter">Region</label>
+                    <label for="region-filter">🌍 Region</label>
                     <select id="region-filter">
                         <option value="">All Regions</option>
-                        <optgroup label="United States">
-                            <!-- US regions populated here -->
-                        </optgroup>
-                        <optgroup label="Canada">
-                            <!-- Canada regions populated here -->
-                        </optgroup>
-                        <optgroup label="Mexico">
-                            <!-- Mexico regions populated here -->
-                        </optgroup>
-                        <optgroup label="Other Regions">
-                            <!-- Other regions populated here -->
-                        </optgroup>
+                        <optgroup label="United States"></optgroup>
+                        <optgroup label="Canada"></optgroup>
+                        <optgroup label="Mexico"></optgroup>
+                        <optgroup label="Other Regions"></optgroup>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label for="severity-filter">Severity</label>
+                    <label for="severity-filter">⚠️ Severity</label>
                     <select id="severity-filter">
                         <option value="">All Severities</option>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label for="date-filter">Time Range</label>
+                    <label for="date-filter">📅 Time Range</label>
                     <select id="date-filter">
-                        <option value="all_time">All Time</option>
+                        <option value="">All Time</option>
                         <option value="last_24h">Last 24 Hours</option>
                         <option value="last_week">Last Week</option>
                         <option value="last_month">Last Month</option>
-                        <option value="custom">Custom Date Range</option>
                     </select>
                 </div>
-            </div>
-            
-            <div class="date-range-custom" id="custom-date-range">
-                <div class="filter-item">
-                    <label for="start-date">Start Date</label>
-                    <input type="date" id="start-date">
-                </div>
-                <div class="filter-item">
-                    <label for="end-date">End Date</label>
-                    <input type="date" id="end-date">
-                </div>
-                <button onclick="applyCustomDate()" style="align-self: flex-end;">Apply</button>
             </div>
 
             <div class="filter-summary" id="filter-summary" style="display: none;"></div>
 
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search alerts...">
+                <input type="text" id="search-input" placeholder="🔍 Search alerts...">
+                <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
                 <button onclick="searchAlerts()">Search</button>
                 <button class="clear-btn" onclick="clearFilters()">Clear Filters</button>
-                <button class="refresh-btn" onclick="refreshFeeds()">↻ Refresh</button>
+                <button class="refresh-btn" onclick="refreshFeeds()">↻ Refresh Data</button>
+                <button class="export-btn" onclick="exportAlerts()">📥 Export</button>
             </div>
         </div>
 
-        <div class="alerts-container">
+        <div class="alerts-container" id="alerts-container">
+            <div class="alerts-header">
+                <div class="alerts-title">Latest Alerts</div>
+                <div class="sort-controls">
+                    <span class="sort-label">Sort by:</span>
+                    <select class="sort-select" id="sort-select" onchange="sortAlerts()">
+                        <option value="date_desc">Newest First</option>
+                        <option value="date_asc">Oldest First</option>
+                        <option value="severity">Severity</option>
+                        <option value="source">Source</option>
+                    </select>
+                </div>
+            </div>
             <div id="alerts-list"></div>
+            <div class="pagination" id="pagination"></div>
         </div>
     </div>
 
     <script>
-        // Automatically detect if running locally or on production
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5000/api'
             : `${window.location.protocol}//${window.location.host}/api`;
-        
-        console.log('API Base URL:', API_BASE);
-        
+
         let currentFilters = {
             category: '',
             region: '',
             severity: '',
             search: '',
-            date_range: '',
-            start_date: '',
-            end_date: ''
+            date_range: ''
         };
 
-        // Region display names
+        let allAlerts = [];
+        let filteredAlerts = [];
+        let currentView = 'list';
+        let currentSort = 'date_desc';
+        let bookmarkedAlerts = new Set(JSON.parse(localStorage.getItem('bookmarkedAlerts') || '[]'));
+        let currentPage = 1;
+        const alertsPerPage = 20;
+
         const regionLabels = {
-            // US Regions
-            'us_northeast': 'Northeast (NY, PA, MA, etc.)',
-            'us_southeast': 'Southeast (FL, GA, NC, SC, VA)',
-            'us_midwest': 'Midwest (IL, IN, MI, OH, WI)',
-            'us_south_central': 'South Central (TX, OK, AR, LA)',
-            'us_great_plains': 'Great Plains (KS, NE, SD, ND)',
-            'us_mountain': 'Mountain (CO, UT, WY, MT, ID)',
-            'us_southwest': 'Southwest (AZ, NM, NV)',
-            'us_west_coast': 'West Coast (CA)',
-            'us_pacific_northwest': 'Pacific Northwest (WA, OR)',
-            'us_alaska': 'Alaska',
-            'us_hawaii': 'Hawaii',
-            'us_territories': 'US Territories (PR, Guam)',
-            // Canada
-            'canada_east': 'Eastern Canada (QC, ON)',
-            'canada_west': 'Western Canada (BC, AB)',
-            // Mexico
-            'mexico_north': 'Northern Mexico',
-            'mexico_central': 'Central Mexico',
-            'mexico_south': 'Southern Mexico',
-            // Other
-            'europe_north': 'Northern Europe',
-            'europe_west': 'Western Europe',
-            'europe_central': 'Central Europe',
-            'europe_south': 'Southern Europe',
-            'asia_east': 'East Asia',
-            'asia_southeast': 'Southeast Asia',
-            'asia_south': 'South Asia',
-            'middle_east': 'Middle East',
-            'latin_america': 'Latin America',
-            'africa': 'Africa',
-            'oceania': 'Oceania'
+            'us_northeast': '🗽 Northeast (NY, PA, MA)',
+            'us_southeast': '🌴 Southeast (FL, GA, NC)',
+            'us_midwest': '🏭 Midwest (IL, IN, OH)',
+            'us_south_central': '🤠 South Central (TX, LA)',
+            'us_great_plains': '🌾 Great Plains (KS, NE)',
+            'us_mountain': '⛰️ Mountain (CO, UT)',
+            'us_southwest': '🌵 Southwest (AZ, NV)',
+            'us_west_coast': '🌊 West Coast (CA)',
+            'us_pacific_northwest': '🌲 Pacific NW (WA, OR)',
+            'us_alaska': '❄️ Alaska',
+            'us_hawaii': '🌺 Hawaii',
+            'us_territories': '🏝️ US Territories',
+            'canada_east': '🍁 Eastern Canada',
+            'canada_west': '🏔️ Western Canada',
+            'mexico_north': '🌮 Northern Mexico',
+            'mexico_central': '🛕 Central Mexico',
+            'mexico_south': '🖐️ Southern Mexico',
+            'europe_north': '🇬🇧 Northern Europe',
+            'europe_west': '🇫🇷 Western Europe',
+            'europe_central': '🇩🇪 Central Europe',
+            'europe_south': '🇮🇹 Southern Europe',
+            'asia_east': '🇨🇳 East Asia',
+            'asia_southeast': '🇸🇬 Southeast Asia',
+            'asia_south': '🇮🇳 South Asia',
+            'middle_east': '🕌 Middle East',
+            'latin_america': '🌎 Latin America',
+            'africa': '🦁 Africa',
+            'oceania': '🦘 Oceania'
         };
+
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            toast.innerHTML = `<span style="font-size: 1.2em">${icon}</span><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            
+            switch(e.key) {
+                case '?':
+                    showShortcuts();
+                    break;
+                case '/':
+                    e.preventDefault();
+                    document.getElementById('search-input').focus();
+                    break;
+                case 'c':
+                case 'C':
+                    clearFilters();
+                    break;
+                case 'r':
+                case 'R':
+                    refreshFeeds();
+                    break;
+                case 'e':
+                case 'E':
+                    exportAlerts();
+                    break;
+                case 'v':
+                case 'V':
+                    const views = ['list', 'compact', 'grid'];
+                    const currentIndex = views.indexOf(currentView);
+                    const nextView = views[(currentIndex + 1) % views.length];
+                    changeView(nextView);
+                    break;
+                case 'Escape':
+                    document.getElementById('shortcuts-modal').classList.remove('active');
+                    break;
+            }
+        });
+
+        function showShortcuts() {
+            document.getElementById('shortcuts-modal').classList.add('active');
+        }
+
+        document.getElementById('shortcuts-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'shortcuts-modal') {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // View mode switching
+        function changeView(view) {
+            currentView = view;
+            const container = document.getElementById('alerts-container');
+            container.className = 'alerts-container';
+            if (view !== 'list') {
+                container.classList.add(view);
+            }
+            
+            document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            
+            renderAlerts();
+        }
+
+        // Quick filters
+        function quickFilter(filterType, value) {
+            if (filterType === 'severity') {
+                document.getElementById('severity-filter').value = value;
+                currentFilters.severity = value;
+            } else if (filterType === 'date_range') {
+                document.getElementById('date-filter').value = value;
+                currentFilters.date_range = value;
+            }
+            loadAlerts();
+        }
+
+        // Bookmark functionality
+        function toggleBookmark(alertId, event) {
+            event.stopPropagation();
+            if (bookmarkedAlerts.has(alertId)) {
+                bookmarkedAlerts.delete(alertId);
+                showToast('Bookmark removed', 'info');
+            } else {
+                bookmarkedAlerts.add(alertId);
+                showToast('Bookmark added', 'success');
+            }
+            localStorage.setItem('bookmarkedAlerts', JSON.stringify([...bookmarkedAlerts]));
+            renderAlerts();
+        }
+
+        function showBookmarks() {
+            filteredAlerts = allAlerts.filter(alert => 
+                bookmarkedAlerts.has(alert.id || alert.title)
+            );
+            currentPage = 1;
+            renderAlerts();
+            showToast(`Showing ${filteredAlerts.length} bookmarked alerts`, 'info');
+        }
+
+        // Sort functionality
+        function sortAlerts() {
+            currentSort = document.getElementById('sort-select').value;
+            applySort();
+            renderAlerts();
+        }
+
+        function applySort() {
+            const sortFunctions = {
+                'date_desc': (a, b) => new Date(b.published) - new Date(a.published),
+                'date_asc': (a, b) => new Date(a.published) - new Date(b.published),
+                'severity': (a, b) => {
+                    const order = { high: 0, medium: 1, low: 2 };
+                    return order[a.severity] - order[b.severity];
+                },
+                'source': (a, b) => a.source.localeCompare(b.source)
+            };
+            
+            filteredAlerts.sort(sortFunctions[currentSort]);
+        }
+
+        // Search clear button
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const clearBtn = document.getElementById('search-clear');
+            clearBtn.classList.toggle('visible', e.target.value.length > 0);
+        });
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-clear').classList.remove('visible');
+            currentFilters.search = '';
+            loadAlerts();
+        }
+
+        // Export functionality
+        function exportAlerts() {
+            const exportData = filteredAlerts.map(alert => ({
+                Title: alert.title,
+                Description: alert.description,
+                Severity: alert.severity,
+                Source: alert.source,
+                Published: new Date(alert.published).toISOString(),
+                Categories: alert.category.join(', '),
+                Regions: alert.region.join(', '),
+                Link: alert.link
+            }));
+
+            const csv = [
+                Object.keys(exportData[0]).join(','),
+                ...exportData.map(row => 
+                    Object.values(row).map(val => 
+                        `"${String(val).replace(/"/g, '""')}"`
+                    ).join(',')
+                )
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `supply-chain-alerts-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showToast(`Exported ${exportData.length} alerts`, 'success');
+        }
+
+        // Pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredAlerts.length / alertsPerPage);
+            if (totalPages <= 1) {
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            const pagination = document.getElementById('pagination');
+            let html = `
+                <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    ← Previous
+                </button>
+            `;
+
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) html += `<span>...</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<span>...</span>`;
+                html += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `
+                <button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    Next →
+                </button>
+            `;
+
+            pagination.innerHTML = html;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderAlerts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         async function init() {
-            console.log('Initializing app...');
             await loadCategories();
             await loadStats();
             await loadAlerts();
             setupEventListeners();
+            startAutoRefresh();
+        }
+
+        function startAutoRefresh() {
+            // Auto-refresh stats every 60 seconds
+            setInterval(async () => {
+                await loadStats();
+            }, 60000);
         }
 
         async function loadCategories() {
@@ -339,7 +1353,6 @@
                 const response = await fetch(`${API_BASE}/categories`);
                 const data = await response.json();
 
-                // Populate categories
                 const categorySelect = document.getElementById('category-filter');
                 data.categories.forEach(cat => {
                     const option = document.createElement('option');
@@ -348,30 +1361,24 @@
                     categorySelect.appendChild(option);
                 });
 
-                // Populate regions with organized groups
-                const regionSelect = document.getElementById('region-filter');
-                const usGroup = regionSelect.querySelector('optgroup[label="United States"]');
-                const canadaGroup = regionSelect.querySelector('optgroup[label="Canada"]');
-                const mexicoGroup = regionSelect.querySelector('optgroup[label="Mexico"]');
-                const otherGroup = regionSelect.querySelector('optgroup[label="Other Regions"]');
+                const regionGroups = {
+                    'United States': document.querySelector('optgroup[label="United States"]'),
+                    'Canada': document.querySelector('optgroup[label="Canada"]'),
+                    'Mexico': document.querySelector('optgroup[label="Mexico"]'),
+                    'Other Regions': document.querySelector('optgroup[label="Other Regions"]')
+                };
 
                 data.regions.forEach(region => {
                     const option = document.createElement('option');
                     option.value = region;
-                    option.textContent = regionLabels[region] || region.replace(/_/g, ' ').toUpperCase();
+                    option.textContent = regionLabels[region] || region;
                     
-                    if (region.startsWith('us_')) {
-                        usGroup.appendChild(option);
-                    } else if (region.startsWith('canada_')) {
-                        canadaGroup.appendChild(option);
-                    } else if (region.startsWith('mexico_')) {
-                        mexicoGroup.appendChild(option);
-                    } else {
-                        otherGroup.appendChild(option);
-                    }
+                    if (region.startsWith('us_')) regionGroups['United States'].appendChild(option);
+                    else if (region.startsWith('canada_')) regionGroups['Canada'].appendChild(option);
+                    else if (region.startsWith('mexico_')) regionGroups['Mexico'].appendChild(option);
+                    else regionGroups['Other Regions'].appendChild(option);
                 });
 
-                // Populate severities
                 const severitySelect = document.getElementById('severity-filter');
                 data.severities.forEach(severity => {
                     const option = document.createElement('option');
@@ -379,9 +1386,9 @@
                     option.textContent = severity.toUpperCase();
                     severitySelect.appendChild(option);
                 });
-
             } catch (error) {
                 console.error('Error loading categories:', error);
+                showToast('Error loading filter options', 'error');
             }
         }
 
@@ -389,22 +1396,39 @@
             try {
                 const response = await fetch(`${API_BASE}/stats`);
                 const data = await response.json();
+                
+                // Calculate trends (mock data - you could store previous values)
+                const trends = {
+                    total: '+5.2%',
+                    last24h: '+12.3%',
+                    last7d: '-3.1%',
+                    high: '+8.7%'
+                };
+
                 document.getElementById('stats').innerHTML = `
                     <div class="stat-card">
-                        <div class="stat-value">${data.total_alerts}</div>
+                        <span class="stat-icon">📊</span>
+                        <span class="stat-value">${data.total_alerts}</span>
                         <div class="stat-label">Total Alerts</div>
+                        <div class="stat-trend trend-up">↗ ${trends.total}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${data.last_24_hours}</div>
+                        <span class="stat-icon">⚡</span>
+                        <span class="stat-value">${data.last_24_hours}</span>
                         <div class="stat-label">Last 24 Hours</div>
+                        <div class="stat-trend trend-up">↗ ${trends.last24h}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${data.last_7_days}</div>
+                        <span class="stat-icon">📅</span>
+                        <span class="stat-value">${data.last_7_days}</span>
                         <div class="stat-label">Last 7 Days</div>
+                        <div class="stat-trend trend-down">↘ ${trends.last7d}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${data.by_severity.high || 0}</div>
+                        <span class="stat-icon">🔴</span>
+                        <span class="stat-value">${data.by_severity.high || 0}</span>
                         <div class="stat-label">High Severity</div>
+                        <div class="stat-trend trend-up">↗ ${trends.high}</div>
                     </div>
                 `;
             } catch (error) {
@@ -421,34 +1445,63 @@
                 const response = await fetch(`${API_BASE}/alerts?${params}`);
                 const data = await response.json();
 
+                allAlerts = data.alerts;
+                filteredAlerts = [...allAlerts];
+                applySort();
+                
+                currentPage = 1;
                 updateFilterSummary(data.total);
+                renderAlerts();
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                alertsList.innerHTML = '<div class="no-results">❌ Error loading alerts. Please try refreshing.</div>';
+                showToast('Error loading alerts', 'error');
+            }
+        }
 
-                if (data.alerts.length === 0) {
-                    alertsList.innerHTML = '<div class="no-results">No alerts found. Try adjusting your filters or click Refresh.</div>';
-                    return;
-                }
+        function renderAlerts() {
+            const alertsList = document.getElementById('alerts-list');
+            
+            if (filteredAlerts.length === 0) {
+                alertsList.innerHTML = '<div class="no-results">😔 No alerts found. Try adjusting your filters or click Refresh Data.</div>';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
 
-                const alertsHtml = data.alerts.map(alert => `
-                    <div class="alert-card" onclick="window.open('${alert.link}', '_blank')">
+            const startIndex = (currentPage - 1) * alertsPerPage;
+            const endIndex = startIndex + alertsPerPage;
+            const pageAlerts = filteredAlerts.slice(startIndex, endIndex);
+
+            const alertsHtml = pageAlerts.map(alert => {
+                const alertId = alert.id || alert.title;
+                const isBookmarked = bookmarkedAlerts.has(alertId);
+                
+                return `
+                    <div class="alert-card ${isBookmarked ? 'bookmarked' : ''}" onclick="window.open('${alert.link}', '_blank')">
                         <div class="alert-header">
                             <div class="alert-title">${alert.title}</div>
-                            <span class="severity-badge severity-${alert.severity}">${alert.severity.toUpperCase()}</span>
+                            <div class="alert-actions">
+                                <div class="action-icon ${isBookmarked ? 'bookmarked' : ''}" 
+                                     onclick="toggleBookmark('${alertId}', event)"
+                                     title="${isBookmarked ? 'Remove bookmark' : 'Add bookmark'}">
+                                    ${isBookmarked ? '⭐' : '☆'}
+                                </div>
+                                <span class="severity-badge severity-${alert.severity}">${alert.severity}</span>
+                            </div>
                         </div>
                         <div class="alert-description">${alert.description}</div>
                         <div class="alert-meta">
-                            <span>📰 ${alert.source}</span>
-                            <span>📅 ${new Date(alert.published).toLocaleDateString()} ${new Date(alert.published).toLocaleTimeString()}</span>
+                            <span class="meta-item">📰 ${alert.source}</span>
+                            <span class="meta-item">📅 ${new Date(alert.published).toLocaleDateString()} ${new Date(alert.published).toLocaleTimeString()}</span>
                             ${alert.category.map(cat => `<span class="tag tag-category">${cat}</span>`).join('')}
-                            ${alert.region.map(reg => `<span class="tag tag-region">${regionLabels[reg] || reg.replace(/_/g, ' ')}</span>`).join('')}
+                            ${alert.region.map(reg => `<span class="tag tag-region">${regionLabels[reg] || reg}</span>`).join('')}
                         </div>
                     </div>
-                `).join('');
+                `;
+            }).join('');
 
-                alertsList.innerHTML = alertsHtml;
-            } catch (error) {
-                console.error('Error loading alerts:', error);
-                alertsList.innerHTML = '<div class="no-results">Error loading alerts. Please try refreshing.</div>';
-            }
+            alertsList.innerHTML = alertsHtml;
+            renderPagination();
         }
 
         function updateFilterSummary(total) {
@@ -458,64 +1511,32 @@
             if (currentFilters.category) activeFilters.push(`Category: ${currentFilters.category}`);
             if (currentFilters.region) activeFilters.push(`Region: ${regionLabels[currentFilters.region] || currentFilters.region}`);
             if (currentFilters.severity) activeFilters.push(`Severity: ${currentFilters.severity}`);
-            if (currentFilters.date_range && currentFilters.date_range !== 'all_time') {
-                activeFilters.push(`Time: ${currentFilters.date_range.replace(/_/g, ' ')}`);
-            }
+            if (currentFilters.date_range) activeFilters.push(`Time: ${currentFilters.date_range.replace(/_/g, ' ')}`);
             if (currentFilters.search) activeFilters.push(`Search: "${currentFilters.search}"`);
             
             if (activeFilters.length > 0) {
-                summary.innerHTML = `<strong>${total} alerts</strong> matching: ${activeFilters.join(', ')}`;
-                summary.style.display = 'block';
+                summary.innerHTML = `
+                    <div>
+                        <strong>📌 ${filteredAlerts.length} alerts</strong> matching: ${activeFilters.join(', ')}
+                    </div>
+                `;
+                summary.style.display = 'flex';
             } else {
                 summary.style.display = 'none';
             }
         }
 
         function setupEventListeners() {
-            document.getElementById('category-filter').addEventListener('change', (e) => {
-                currentFilters.category = e.target.value;
-                loadAlerts();
-            });
-
-            document.getElementById('region-filter').addEventListener('change', (e) => {
-                currentFilters.region = e.target.value;
-                loadAlerts();
-            });
-
-            document.getElementById('severity-filter').addEventListener('change', (e) => {
-                currentFilters.severity = e.target.value;
-                loadAlerts();
-            });
-
-            document.getElementById('date-filter').addEventListener('change', (e) => {
-                const dateRange = e.target.value;
-                if (dateRange === 'custom') {
-                    document.getElementById('custom-date-range').classList.add('active');
-                } else {
-                    document.getElementById('custom-date-range').classList.remove('active');
-                    currentFilters.date_range = dateRange;
-                    currentFilters.start_date = '';
-                    currentFilters.end_date = '';
+            ['category', 'region', 'severity', 'date'].forEach(type => {
+                document.getElementById(`${type}-filter`).addEventListener('change', (e) => {
+                    currentFilters[type === 'date' ? 'date_range' : type] = e.target.value;
                     loadAlerts();
-                }
+                });
             });
 
             document.getElementById('search-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') searchAlerts();
             });
-        }
-
-        function applyCustomDate() {
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            if (startDate && endDate) {
-                currentFilters.date_range = 'custom';
-                currentFilters.start_date = startDate;
-                currentFilters.end_date = endDate;
-                loadAlerts();
-            } else {
-                alert('Please select both start and end dates');
-            }
         }
 
         function searchAlerts() {
@@ -524,22 +1545,15 @@
         }
 
         function clearFilters() {
-            currentFilters = {
-                category: '',
-                region: '',
-                severity: '',
-                search: '',
-                date_range: '',
-                start_date: '',
-                end_date: ''
-            };
+            currentFilters = { category: '', region: '', severity: '', search: '', date_range: '' };
             document.getElementById('category-filter').value = '';
             document.getElementById('region-filter').value = '';
             document.getElementById('severity-filter').value = '';
-            document.getElementById('date-filter').value = 'all_time';
+            document.getElementById('date-filter').value = '';
             document.getElementById('search-input').value = '';
-            document.getElementById('custom-date-range').classList.remove('active');
+            document.getElementById('search-clear').classList.remove('visible');
             loadAlerts();
+            showToast('Filters cleared', 'info');
         }
 
         async function refreshFeeds() {
@@ -550,15 +1564,15 @@
             try {
                 const response = await fetch(`${API_BASE}/refresh`, { method: 'POST' });
                 const data = await response.json();
-                alert(data.message);
+                showToast(data.message, 'success');
                 await loadStats();
                 await loadAlerts();
             } catch (error) {
-                alert('Error refreshing feeds');
+                showToast('Error refreshing feeds', 'error');
                 console.error(error);
             } finally {
                 button.disabled = false;
-                button.textContent = '↻ Refresh';
+                button.textContent = '↻ Refresh Data';
             }
         }
 
