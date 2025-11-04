@@ -49,33 +49,98 @@ def init_db():
         print(f"❌ Database initialization error: {e}")
         raise
 
-# Simplified feed sources for faster initial load
+# Top 20 logistics and supply chain RSS feeds
 FEED_SOURCES = [
+    # General Supply Chain News (Top tier)
     {'url': 'https://www.supplychaindive.com/feeds/news/', 'name': 'Supply Chain Dive'},
     {'url': 'https://www.freightwaves.com/news/feed', 'name': 'FreightWaves'},
+    {'url': 'https://www.inboundlogistics.com/articles/feed/', 'name': 'Inbound Logistics'},
+    {'url': 'https://www.logisticsmgmt.com/rss/topic/all', 'name': 'Logistics Management'},
+    {'url': 'https://www.dcvelocity.com/rss/', 'name': 'DC Velocity'},
+    
+    # Maritime & Ports
     {'url': 'https://www.joc.com/rss/all-news', 'name': 'JOC.com'},
-    {'url': 'https://gcaptain.com/feed/', 'name': 'gCaptain'},
+    {'url': 'https://gcaptain.com/feed/', 'name': 'gCaptain Maritime'},
+    {'url': 'https://www.americanshipper.com/rss', 'name': 'American Shipper'},
+    {'url': 'https://www.seatrade-maritime.com/rss.xml', 'name': 'Seatrade Maritime'},
+    {'url': 'https://www.portechnology.org/feed/', 'name': 'Port Technology'},
+    
+    # Trucking & Transportation
     {'url': 'https://www.ttnews.com/rss/articles/latest', 'name': 'Transport Topics'},
+    {'url': 'https://www.truckinginfo.com/rss/feed/10/', 'name': 'Trucking Info'},
+    {'url': 'https://www.overdriveonline.com/feed/', 'name': 'Overdrive Magazine'},
+    
+    # Rail
+    {'url': 'https://www.railwayage.com/feed/', 'name': 'Railway Age'},
+    {'url': 'https://www.progressiverailroading.com/rss/', 'name': 'Progressive Railroading'},
+    
+    # Air Cargo
+    {'url': 'https://www.aircargonews.net/feed/', 'name': 'Air Cargo News'},
+    {'url': 'https://www.aircargoweek.com/feed/', 'name': 'Air Cargo Week'},
+    
+    # Warehousing & 3PL
+    {'url': 'https://www.mhlnews.com/rss-feeds', 'name': 'Material Handling & Logistics'},
+    
+    # Trade & Global
+    {'url': 'https://www.joc.com/rss/maritime-news/trade-lanes', 'name': 'JOC Trade Lanes'},
+    {'url': 'https://www.supplychainbrain.com/rss', 'name': 'Supply Chain Brain'},
 ]
 
 CATEGORY_KEYWORDS = {
-    'port': ['port', 'harbor', 'terminal', 'dock'],
-    'shipping': ['shipping', 'freight', 'cargo', 'container'],
-    'trucking': ['truck', 'trucking', 'driver'],
-    'rail': ['rail', 'train', 'railroad'],
-    'air': ['air cargo', 'airline', 'aviation'],
-    'shortage': ['shortage', 'scarce'],
-    'delay': ['delay', 'delayed'],
-    'disruption': ['disruption', 'disrupted'],
+    'port': ['port', 'harbor', 'terminal', 'dock', 'berth', 'anchorage', 'quay'],
+    'shipping': ['shipping', 'freight', 'cargo', 'container', 'vessel', 'ocean freight', 'maritime'],
+    'trucking': ['truck', 'trucking', 'driver', 'highway', 'road freight', 'motor carrier'],
+    'rail': ['rail', 'train', 'railroad', 'freight train', 'intermodal', 'railway'],
+    'air': ['air cargo', 'airline', 'aviation', 'airport', 'air freight'],
+    'warehousing': ['warehouse', 'distribution center', 'fulfillment', '3pl', 'storage'],
+    'shortage': ['shortage', 'scarce', 'supply shortage', 'out of stock', 'unavailable'],
+    'delay': ['delay', 'delayed', 'postponed', 'late', 'behind schedule', 'backlog'],
+    'disruption': ['disruption', 'disrupted', 'interrupted', 'suspended', 'halt'],
+    'customs': ['customs', 'tariff', 'duty', 'border', 'cbp', 'import', 'export'],
+    'weather': ['storm', 'hurricane', 'typhoon', 'flood', 'snow', 'ice', 'weather'],
+    'labor': ['strike', 'union', 'workers', 'labor dispute', 'walkout'],
 }
 
 REGION_KEYWORDS = {
-    'us_northeast': ['new york', 'boston', 'philadelphia'],
-    'us_southeast': ['florida', 'atlanta', 'miami'],
-    'us_midwest': ['chicago', 'detroit'],
-    'us_west_coast': ['california', 'los angeles', 'oakland'],
-    'europe': ['europe', 'rotterdam', 'hamburg'],
-    'asia': ['china', 'singapore', 'hong kong'],
+    # United States (12 regions)
+    'us_northeast': ['new york', 'new jersey', 'pennsylvania', 'boston', 'philadelphia', 'newark', 'jfk'],
+    'us_southeast': ['florida', 'georgia', 'north carolina', 'south carolina', 'virginia', 'atlanta', 'miami', 'charleston'],
+    'us_midwest': ['illinois', 'indiana', 'michigan', 'ohio', 'wisconsin', 'chicago', 'detroit', 'cleveland'],
+    'us_south_central': ['texas', 'oklahoma', 'louisiana', 'arkansas', 'houston', 'dallas', 'new orleans'],
+    'us_great_plains': ['kansas', 'nebraska', 'south dakota', 'north dakota', 'kansas city'],
+    'us_mountain': ['colorado', 'utah', 'wyoming', 'montana', 'denver', 'salt lake city'],
+    'us_southwest': ['arizona', 'new mexico', 'nevada', 'phoenix', 'las vegas'],
+    'us_west_coast': ['california', 'los angeles', 'long beach', 'oakland', 'san francisco', 'san diego'],
+    'us_pacific_northwest': ['washington', 'oregon', 'seattle', 'portland', 'tacoma'],
+    'us_alaska': ['alaska', 'anchorage'],
+    'us_hawaii': ['hawaii', 'honolulu'],
+    'us_territories': ['puerto rico', 'guam', 'san juan'],
+    
+    # Canada (2 regions)
+    'canada_east': ['quebec', 'ontario', 'montreal', 'toronto', 'halifax'],
+    'canada_west': ['british columbia', 'alberta', 'vancouver', 'calgary'],
+    
+    # Mexico (3 regions)
+    'mexico_north': ['tijuana', 'mexicali', 'monterrey', 'ciudad juarez'],
+    'mexico_central': ['mexico city', 'guadalajara', 'cdmx'],
+    'mexico_south': ['veracruz', 'merida', 'cancun'],
+    
+    # Europe (4 regions)
+    'europe_north': ['uk', 'ireland', 'scandinavia', 'london', 'dublin'],
+    'europe_west': ['france', 'belgium', 'netherlands', 'paris', 'rotterdam', 'antwerp'],
+    'europe_central': ['germany', 'poland', 'austria', 'berlin', 'hamburg'],
+    'europe_south': ['spain', 'italy', 'portugal', 'barcelona', 'rome'],
+    
+    # Asia (3 regions)
+    'asia_east': ['china', 'japan', 'south korea', 'shanghai', 'tokyo', 'hong kong'],
+    'asia_southeast': ['singapore', 'malaysia', 'thailand', 'vietnam'],
+    'asia_south': ['india', 'pakistan', 'mumbai', 'delhi'],
+    
+    # Other
+    'middle_east': ['dubai', 'saudi', 'uae', 'qatar'],
+    'latin_america': ['brazil', 'argentina', 'chile', 'sao paulo'],
+    'africa': ['south africa', 'kenya', 'egypt', 'durban'],
+    'oceania': ['australia', 'new zealand', 'sydney'],
 }
 
 def categorize_text(text, keyword_dict):
@@ -242,15 +307,14 @@ except Exception as e:
 print("⏰ Starting background scheduler...")
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=fetch_feeds, trigger="interval", hours=4)
+# Fetch feeds 30 seconds after startup (avoid blocking worker startup)
+scheduler.add_job(func=fetch_feeds, trigger='date', run_date=datetime.now() + __import__('datetime').timedelta(seconds=30))
 scheduler.start()
-print("✅ Scheduler started")
+print("✅ Scheduler started - feeds will fetch in 30 seconds")
 
 if __name__ == '__main__':
-    print("📡 Fetching initial data...")
-    try:
-        fetch_feeds()
-    except Exception as e:
-        print(f"⚠️  Initial fetch failed (will retry later): {e}")
+    print("📡 Initial feed fetch will happen in background...")
+    print("⏰ Background scheduler will fetch feeds every 4 hours")
     
     port = int(os.environ.get('PORT', 5000))
     print(f"🌐 Starting server on port {port}...")
