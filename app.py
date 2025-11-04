@@ -177,7 +177,18 @@ def fetch_feeds():
                         title = entry.get('title', 'No title')
                         description = re.sub('<[^<]+?>', '', entry.get('summary', ''))[:500]
                         link = entry.get('link', '')
-                        published = entry.get('published', datetime.now().isoformat())
+                        
+                        # Better date parsing - use parsed time structure
+                        try:
+                            import time
+                            time_struct = entry.get('published_parsed') or entry.get('updated_parsed')
+                            if time_struct:
+                                published = datetime(*time_struct[:6]).isoformat()
+                            else:
+                                published = datetime.now().isoformat()
+                        except:
+                            published = datetime.now().isoformat()
+                        
                         alert_id = hashlib.md5(f"{title}{link}".encode()).hexdigest()
                         
                         # Check if exists
@@ -219,12 +230,59 @@ def fetch_feeds():
 
 @app.route('/api/alerts', methods=['GET'])
 def get_alerts():
-    """Get all alerts"""
+    """Get all alerts with filtering"""
     try:
         conn = get_db_connection()
         c = conn.cursor()
+        placeholder = '%s' if DATABASE_URL else '?'
         
-        c.execute('SELECT * FROM alerts ORDER BY published DESC LIMIT 100')
+        # Get filter parameters
+        category = request.args.get('category', '')
+        region = request.args.get('region', '')
+        severity = request.args.get('severity', '')
+        search = request.args.get('search', '')
+        date_range = request.args.get('date_range', '')
+        
+        # Build query with filters
+        query = 'SELECT * FROM alerts WHERE 1=1'
+        params = []
+        
+        if category:
+            query += f' AND category LIKE {placeholder}'
+            params.append(f'%{category}%')
+        
+        if region:
+            query += f' AND region LIKE {placeholder}'
+            params.append(f'%{region}%')
+        
+        if severity:
+            query += f' AND severity = {placeholder}'
+            params.append(severity)
+        
+        if search:
+            query += f' AND (title LIKE {placeholder} OR description LIKE {placeholder})'
+            params.extend([f'%{search}%', f'%{search}%'])
+        
+        # Date filtering - FIXED
+        if date_range == 'last_24h':
+            if DATABASE_URL:
+                query += " AND published::timestamp > NOW() - INTERVAL '1 day'"
+            else:
+                query += " AND datetime(published) > datetime('now', '-1 day')"
+        elif date_range == 'last_week':
+            if DATABASE_URL:
+                query += " AND published::timestamp > NOW() - INTERVAL '7 days'"
+            else:
+                query += " AND datetime(published) > datetime('now', '-7 days')"
+        elif date_range == 'last_month':
+            if DATABASE_URL:
+                query += " AND published::timestamp > NOW() - INTERVAL '30 days'"
+            else:
+                query += " AND datetime(published) > datetime('now', '-30 days')"
+        
+        query += ' ORDER BY published DESC LIMIT 100'
+        
+        c.execute(query, params)
         
         if DATABASE_URL:
             columns = [desc[0] for desc in c.description]
