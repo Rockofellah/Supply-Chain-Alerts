@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Alert Aggregator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #2d3748; font-size: 2em; margin-bottom: 10px; }
+        .subtitle { color: #718096; font-size: 1.1em; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .stat-value { font-size: 2em; font-weight: bold; color: #667eea; }
+        .stat-label { color: #718096; margin-top: 5px; }
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .filter-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .filter-item { display: flex; flex-direction: column; }
+        label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        select, input[type="text"], input[type="date"] {
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .date-range-custom {
+            display: none;
+            grid-column: 1 / -1;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .date-range-custom.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+        }
+        .search-container { display: flex; gap: 10px; }
+        .search-container input { flex: 1; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        button:hover { background: #5568d3; }
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+        .refresh-btn { background: #48bb78; }
+        .refresh-btn:hover { background: #38a169; }
+        .clear-btn { background: #e53e3e; }
+        .clear-btn:hover { background: #c53030; }
+        .alerts-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .alert-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .alert-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+        .alert-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+            flex: 1;
+        }
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .severity-high { background: #fed7d7; color: #c53030; }
+        .severity-medium { background: #feebc8; color: #c05621; }
+        .severity-low { background: #c6f6d5; color: #276749; }
+        .alert-description {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .alert-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #718096;
+        }
+        .tag {
+            background: #edf2f7;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .tag-category { background: #e6fffa; color: #234e52; }
+        .tag-region { background: #feebc8; color: #7c2d12; }
+        .loading { text-align: center; padding: 40px; color: #718096; }
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .no-results { text-align: center; padding: 40px; color: #718096; }
+        .filter-summary {
+            background: #edf2f7;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+        @media (max-width: 768px) {
+            .filter-group { grid-template-columns: 1fr; }
+            .alert-header { flex-direction: column; }
+            h1 { font-size: 1.5em; }
+            .date-range-custom.active { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚢 Supply Chain Alert Aggregator</h1>
+            <p class="subtitle">Real-time monitoring of global supply chain disruptions with 20+ sources</p>
+        </header>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="controls">
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label for="category-filter">Category</label>
+                    <select id="category-filter">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="region-filter">Region</label>
+                    <select id="region-filter">
+                        <option value="">All Regions</option>
+                        <optgroup label="United States">
+                            <!-- US regions populated here -->
+                        </optgroup>
+                        <optgroup label="Canada">
+                            <!-- Canada regions populated here -->
+                        </optgroup>
+                        <optgroup label="Mexico">
+                            <!-- Mexico regions populated here -->
+                        </optgroup>
+                        <optgroup label="Other Regions">
+                            <!-- Other regions populated here -->
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="severity-filter">Severity</label>
+                    <select id="severity-filter">
+                        <option value="">All Severities</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="date-filter">Time Range</label>
+                    <select id="date-filter">
+                        <option value="all_time">All Time</option>
+                        <option value="last_24h">Last 24 Hours</option>
+                        <option value="last_week">Last Week</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="custom">Custom Date Range</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="date-range-custom" id="custom-date-range">
+                <div class="filter-item">
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date">
+                </div>
+                <div class="filter-item">
+                    <label for="end-date">End Date</label>
+                    <input type="date" id="end-date">
+                </div>
+                <button onclick="applyCustomDate()" style="align-self: flex-end;">Apply</button>
+            </div>
+
+            <div class="filter-summary" id="filter-summary" style="display: none;"></div>
+
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search alerts...">
+                <button onclick="searchAlerts()">Search</button>
+                <button class="clear-btn" onclick="clearFilters()">Clear Filters</button>
+                <button class="refresh-btn" onclick="refreshFeeds()">↻ Refresh</button>
+            </div>
+        </div>
+
+        <div class="alerts-container">
+            <div id="alerts-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Automatically detect if running locally or on production
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api'
+            : `${window.location.protocol}//${window.location.host}/api`;
+        
+        console.log('API Base URL:', API_BASE);
+        
+        let currentFilters = {
+            category: '',
+            region: '',
+            severity: '',
+            search: '',
+            date_range: '',
+            start_date: '',
+            end_date: ''
+        };
+
+        // Region display names
+        const regionLabels = {
+            // US Regions
+            'us_northeast': 'Northeast (NY, PA, MA, etc.)',
+            'us_southeast': 'Southeast (FL, GA, NC, SC, VA)',
+            'us_midwest': 'Midwest (IL, IN, MI, OH, WI)',
+            'us_south_central': 'South Central (TX, OK, AR, LA)',
+            'us_great_plains': 'Great Plains (KS, NE, SD, ND)',
+            'us_mountain': 'Mountain (CO, UT, WY, MT, ID)',
+            'us_southwest': 'Southwest (AZ, NM, NV)',
+            'us_west_coast': 'West Coast (CA)',
+            'us_pacific_northwest': 'Pacific Northwest (WA, OR)',
+            'us_alaska': 'Alaska',
+            'us_hawaii': 'Hawaii',
+            'us_territories': 'US Territories (PR, Guam)',
+            // Canada
+            'canada_east': 'Eastern Canada (QC, ON)',
+            'canada_west': 'Western Canada (BC, AB)',
+            // Mexico
+            'mexico_north': 'Northern Mexico',
+            'mexico_central': 'Central Mexico',
+            'mexico_south': 'Southern Mexico',
+            // Other
+            'europe_north': 'Northern Europe',
+            'europe_west': 'Western Europe',
+            'europe_central': 'Central Europe',
+            'europe_south': 'Southern Europe',
+            'asia_east': 'East Asia',
+            'asia_southeast': 'Southeast Asia',
+            'asia_south': 'South Asia',
+            'middle_east': 'Middle East',
+            'latin_america': 'Latin America',
+            'africa': 'Africa',
+            'oceania': 'Oceania'
+        };
+
+        async function init() {
+            console.log('Initializing app...');
+            await loadCategories();
+            await loadStats();
+            await loadAlerts();
+            setupEventListeners();
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/categories`);
+                const data = await response.json();
+
+                // Populate categories
+                const categorySelect = document.getElementById('category-filter');
+                data.categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat.replace(/_/g, ' ').toUpperCase();
+                    categorySelect.appendChild(option);
+                });
+
+                // Populate regions with organized groups
+                const regionSelect = document.getElementById('region-filter');
+                const usGroup = regionSelect.querySelector('optgroup[label="United States"]');
+                const canadaGroup = regionSelect.querySelector('optgroup[label="Canada"]');
+                const mexicoGroup = regionSelect.querySelector('optgroup[label="Mexico"]');
+                const otherGroup = regionSelect.querySelector('optgroup[label="Other Regions"]');
+
+                data.regions.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region;
+                    option.textContent = regionLabels[region] || region.replace(/_/g, ' ').toUpperCase();
+                    
+                    if (region.startsWith('us_')) {
+                        usGroup.appendChild(option);
+                    } else if (region.startsWith('canada_')) {
+                        canadaGroup.appendChild(option);
+                    } else if (region.startsWith('mexico_')) {
+                        mexicoGroup.appendChild(option);
+                    } else {
+                        otherGroup.appendChild(option);
+                    }
+                });
+
+                // Populate severities
+                const severitySelect = document.getElementById('severity-filter');
+                data.severities.forEach(severity => {
+                    const option = document.createElement('option');
+                    option.value = severity;
+                    option.textContent = severity.toUpperCase();
+                    severitySelect.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${data.total_alerts}</div>
+                        <div class="stat-label">Total Alerts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.last_24_hours}</div>
+                        <div class="stat-label">Last 24 Hours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.last_7_days}</div>
+                        <div class="stat-label">Last 7 Days</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.by_severity.high || 0}</div>
+                        <div class="stat-label">High Severity</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadAlerts() {
+            const alertsList = document.getElementById('alerts-list');
+            alertsList.innerHTML = '<div class="loading"><div class="spinner"></div>Loading alerts...</div>';
+
+            try {
+                const params = new URLSearchParams(currentFilters);
+                const response = await fetch(`${API_BASE}/alerts?${params}`);
+                const data = await response.json();
+
+                updateFilterSummary(data.total);
+
+                if (data.alerts.length === 0) {
+                    alertsList.innerHTML = '<div class="no-results">No alerts found. Try adjusting your filters or click Refresh.</div>';
+                    return;
+                }
+
+                const alertsHtml = data.alerts.map(alert => `
+                    <div class="alert-card" onclick="window.open('${alert.link}', '_blank')">
+                        <div class="alert-header">
+                            <div class="alert-title">${alert.title}</div>
+                            <span class="severity-badge severity-${alert.severity}">${alert.severity.toUpperCase()}</span>
+                        </div>
+                        <div class="alert-description">${alert.description}</div>
+                        <div class="alert-meta">
+                            <span>📰 ${alert.source}</span>
+                            <span>📅 ${new Date(alert.published).toLocaleDateString()} ${new Date(alert.published).toLocaleTimeString()}</span>
+                            ${alert.category.map(cat => `<span class="tag tag-category">${cat}</span>`).join('')}
+                            ${alert.region.map(reg => `<span class="tag tag-region">${regionLabels[reg] || reg.replace(/_/g, ' ')}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+
+                alertsList.innerHTML = alertsHtml;
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                alertsList.innerHTML = '<div class="no-results">Error loading alerts. Please try refreshing.</div>';
+            }
+        }
+
+        function updateFilterSummary(total) {
+            const summary = document.getElementById('filter-summary');
+            const activeFilters = [];
+            
+            if (currentFilters.category) activeFilters.push(`Category: ${currentFilters.category}`);
+            if (currentFilters.region) activeFilters.push(`Region: ${regionLabels[currentFilters.region] || currentFilters.region}`);
+            if (currentFilters.severity) activeFilters.push(`Severity: ${currentFilters.severity}`);
+            if (currentFilters.date_range && currentFilters.date_range !== 'all_time') {
+                activeFilters.push(`Time: ${currentFilters.date_range.replace(/_/g, ' ')}`);
+            }
+            if (currentFilters.search) activeFilters.push(`Search: "${currentFilters.search}"`);
+            
+            if (activeFilters.length > 0) {
+                summary.innerHTML = `<strong>${total} alerts</strong> matching: ${activeFilters.join(', ')}`;
+                summary.style.display = 'block';
+            } else {
+                summary.style.display = 'none';
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('category-filter').addEventListener('change', (e) => {
+                currentFilters.category = e.target.value;
+                loadAlerts();
+            });
+
+            document.getElementById('region-filter').addEventListener('change', (e) => {
+                currentFilters.region = e.target.value;
+                loadAlerts();
+            });
+
+            document.getElementById('severity-filter').addEventListener('change', (e) => {
+                currentFilters.severity = e.target.value;
+                loadAlerts();
+            });
+
+            document.getElementById('date-filter').addEventListener('change', (e) => {
+                const dateRange = e.target.value;
+                if (dateRange === 'custom') {
+                    document.getElementById('custom-date-range').classList.add('active');
+                } else {
+                    document.getElementById('custom-date-range').classList.remove('active');
+                    currentFilters.date_range = dateRange;
+                    currentFilters.start_date = '';
+                    currentFilters.end_date = '';
+                    loadAlerts();
+                }
+            });
+
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchAlerts();
+            });
+        }
+
+        function applyCustomDate() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            if (startDate && endDate) {
+                currentFilters.date_range = 'custom';
+                currentFilters.start_date = startDate;
+                currentFilters.end_date = endDate;
+                loadAlerts();
+            } else {
+                alert('Please select both start and end dates');
+            }
+        }
+
+        function searchAlerts() {
+            currentFilters.search = document.getElementById('search-input').value;
+            loadAlerts();
+        }
+
+        function clearFilters() {
+            currentFilters = {
+                category: '',
+                region: '',
+                severity: '',
+                search: '',
+                date_range: '',
+                start_date: '',
+                end_date: ''
+            };
+            document.getElementById('category-filter').value = '';
+            document.getElementById('region-filter').value = '';
+            document.getElementById('severity-filter').value = '';
+            document.getElementById('date-filter').value = 'all_time';
+            document.getElementById('search-input').value = '';
+            document.getElementById('custom-date-range').classList.remove('active');
+            loadAlerts();
+        }
+
+        async function refreshFeeds() {
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '⟳ Refreshing...';
+
+            try {
+                const response = await fetch(`${API_BASE}/refresh`, { method: 'POST' });
+                const data = await response.json();
+                alert(data.message);
+                await loadStats();
+                await loadAlerts();
+            } catch (error) {
+                alert('Error refreshing feeds');
+                console.error(error);
+            } finally {
+                button.disabled = false;
+                button.textContent = '↻ Refresh';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
