@@ -1,0 +1,67 @@
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║     SUPPLY CHAIN ALERT AGGREGATOR - QUICK START           ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+✅ STEP 1: INSTALL (2 minutes)
+──────────────────────────────────
+pip install -r requirements.txt
+
+✅ STEP 2: START BACKEND (30 seconds)
+──────────────────────────────────  
+python app.py
+
+You should see:
+  "Fetching initial feed data..."
+  "Fetching Supply Chain Dive..."
+  "Starting server..."
+
+✅ STEP 3: OPEN FRONTEND (30 seconds)
+──────────────────────────────────
+Option A - Direct:
+  Just double-click index.html
+
+Option B - Recommended:
+  # Open new terminal
+  python -m http.server 8000
+  # Then visit: http://localhost:8000
+
+✅ WHAT YOU SHOULD SEE:
+──────────────────────────────────
+✓ Dashboard with statistics
+✓ Alert feed loading automatically
+✓ Filter dropdowns (category, region, severity)
+✓ Search box functional
+✓ Click any alert to visit source
+
+🐛 TROUBLESHOOTING:
+──────────────────────────────────
+"Module not found" →
+  pip install -r requirements.txt --upgrade
+
+"Port 5000 in use" →
+  lsof -ti:5000 | xargs kill -9
+
+"No alerts" →
+  Wait 30 seconds, check terminal, click Refresh
+
+🎯 NEXT STEPS:
+──────────────────────────────────
+1. Test all the filters
+2. Try searching for keywords
+3. Read through app.py code
+4. Add 3 more RSS sources
+5. Deploy to Railway.app
+
+📚 FULL DOCS:
+──────────────────────────────────
+README.md - Complete documentation
+app.py - Backend code (well commented)
+index.html - Frontend code
+
+🚀 YOU'RE READY TO ITERATE!
+
+Add sources, customize colors, deploy, get users.
+
+The hardest part (building) is done. Now ship it!
